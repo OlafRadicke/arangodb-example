@@ -102,3 +102,20 @@ curl -u ${DBUSER}:${PASSWORD} -X POST -d \
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
    '{ "date": "2015-01-22", "location": "Hintere Gasse 22" }' \
    ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession
+
+
+#### love_it ####
+
+curl -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- -d \
+   '{ "name" : "first love_it" }' \
+   ${DBSERVER}/_db/${DATABASE}/_api/edge/?collection=love_it&from=vertices/1&to=vertices/2
+
+
+#### REPORT ####
+
+curl -u ${DBUSER}:${PASSWORD} --dump -d \
+    ${DBSERVER}/_db/${DATABASE}/_api/collection
+
+curl -u ${DBUSER}:${PASSWORD} --dump -d \
+    ${DBSERVER}/_db/${DATABASE}/_api/edge
+
