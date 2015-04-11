@@ -19,7 +19,7 @@ set -e
 
 # Datenbank erstellen
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
-   '{"name":"networkcookbook"}'  \
+   '{"name":"${DATABASE}"}'  \
    ${DBSERVER}/_api/database
 
 #### Collection von Typ document ####
@@ -89,7 +89,7 @@ curl -u ${DBUSER}:${PASSWORD} -X POST -d \
 
 # Daten zur Kochveranstaltung
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
-   '{ "date": "2015-03-29", "location": "Münchnerstr. 7" }' \
+   '{ name: "2015-03-29-Muenchnerstr-7", "date": "2015-03-29", "location": "Münchnerstr. 7" }' \
    ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession
 
 # Daten zur Kochveranstaltung
@@ -101,21 +101,43 @@ curl -u ${DBUSER}:${PASSWORD} -X POST -d \
 # Daten zur Kochveranstaltung
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
    '{ "date": "2015-01-22", "location": "Hintere Gasse 22" }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession
+   "${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession"
 
 
 #### love_it ####
 
 curl -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- -d \
-   '{ "name" : "first love_it" }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/edge/?collection=love_it&from=vertices/1&to=vertices/2
+   '{ "name" : "love_it" }' \
+   ${DBSERVER}/_db/${DATABASE}/_api/edge/?collection=love_it&from=cookingfriend&to=cookingsession/1"
 
+
+#### Graphen ####
+
+curl -u ${DBUSER}:${PASSWORD} -X POST -d \
+   '{name: "variande", edgeDefinitions: ["love_it"], orphanCollections: ["2015-03-29-Muenchnerstr-7", "Rudi"]}'
+   ${DBSERVER}/_db/${DATABASE}/_api/gharial
 
 #### REPORT ####
 
+# Alle collections
+echo "-----------------------------------"
+echo "all collections:"
+echo "-----------------------------------"
 curl -u ${DBUSER}:${PASSWORD} --dump -d \
     ${DBSERVER}/_db/${DATABASE}/_api/collection
 
+# Alle edges
+echo "-----------------------------------"
+echo "all edges"
+echo "-----------------------------------"
 curl -u ${DBUSER}:${PASSWORD} --dump -d \
     ${DBSERVER}/_db/${DATABASE}/_api/edge
+
+
+# Alle Graphen
+echo "-----------------------------------"
+echo "all graphs:"
+echo "-----------------------------------"
+curl -u ${DBUSER}:${PASSWORD} -X GET \
+   ${DBSERVER}/_db/${DATABASE}/_api/gharial
 
