@@ -11,7 +11,7 @@ DATABASE="networkcookbook"
 # curl -u ${DBUSER}:${PASSWORD} -X DELETE -d \
 #    ${DBSERVER}/_api/database/${DATABASE}
 
-curl -u ${DBUSER}:${PASSWORD} -X DELETE  @- -d \
+curl -u ${DBUSER}:${PASSWORD} -X DELETE  \
    ${DBSERVER}/_api/database/${DATABASE}
 
 # Abbrechen so bald etwas schief läuft
@@ -19,8 +19,20 @@ set -e
 
 # Datenbank erstellen
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
-   '{"name":"${DATABASE}"}'  \
+   "{ \"name\": \"${DATABASE}\", \"users\": [{  \"username\": \"cookadmin\", \"passwd\": \"${PASSWORD}\", \"active\": \"true\"}] }"  \
    ${DBSERVER}/_api/database
+
+
+# curl -u ${DBUSER}:${PASSWORD} -X POST -d \
+#    "{ name: \"${DATABASE}\",  username: \"${DBUSER}\", passwd: \"${PASSWORD}\", active: \"true\" }"  \
+#    ${DBSERVER}/_api/database
+
+# curl -u ${DBUSER}:${PASSWORD} -X POST -d \
+#    "{ \"name\": \"${DATABASE}\"}"  \
+#    ${DBSERVER}/_api/database
+
+# curl -v -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- --dump - ${DBSERVER}/_api/database
+# {"name":"example"}
 
 #### Collection von Typ document ####
 
@@ -63,10 +75,20 @@ curl -u ${DBUSER}:${PASSWORD}  -X POST -d \
    '{ "name": "Spiegeleier", "anweisung": "Eier in die Pfanne schlagen. Pfeffern und salzen." }'  \
    ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cooking_recipe
 
+
 # Rezept erstellen
-curl -u ${DBUSER}:${PASSWORD} -X POST -d \
-   '{ "name": "Ruheei", "anweisung": "Eier in die Pfanne schlagen und verrühren. Pfeffern und salzen." }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cooking_recipe
+# curl -u ${DBUSER}:${PASSWORD}  -X POST -d \
+#    '{ "name": "Spiegeleier", "anweisung": "Eier in die Pfanne schlagen. Pfeffern und salzen." }'  \
+#    ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cooking_recipe
+
+# Rezept erstellen
+curl -u ${DBUSER}:${PASSWORD} -H "Content-Type: application/json" -X POST -d \
+   '{ collection: "cooking_recipe", document: "{ "name": "Ruheei", "anweisung": "Eier in die Pfanne schlagen und verrühren. Pfeffern und salzen." }"} ' \
+   ${DBSERVER}/_db/${DATABASE}/_api/document/
+
+# curl -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- --dump - ${DBSERVER}/_api/document?collection=products
+# { "Hello": "World" }
+
 
 #### KOCHFREUNDE ####
 
@@ -90,12 +112,12 @@ curl -u ${DBUSER}:${PASSWORD} -X POST -d \
 # Daten zur Kochveranstaltung
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
    '{ name: "2015-03-29-Muenchnerstr-7", "date": "2015-03-29", "location": "Münchnerstr. 7" }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession
+   "${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession"
 
 # Daten zur Kochveranstaltung
 curl -u ${DBUSER}:${PASSWORD} -X POST -d \
    '{ "date": "2015-01-20", "location": "Kapperweg 17" }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession
+   "${DBSERVER}/_db/${DATABASE}/_api/document?collection=cookingsession"
 
 
 # Daten zur Kochveranstaltung
@@ -106,25 +128,38 @@ curl -u ${DBUSER}:${PASSWORD} -X POST -d \
 
 #### love_it ####
 
-curl -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- -d \
-   '{ "name" : "love_it" }' \
-   ${DBSERVER}/_db/${DATABASE}/_api/edge/?collection=love_it&from=cookingfriend&to=cookingsession/1"
+#curl -u ${DBUSER}:${PASSWORD} -X POST --data-binary @- -d \
+#   '{ "name" : "love_it" }' \
+#   "${DBSERVER}/_db/${DATABASE}/_api/edge/?collection=love_it&from=cookingfriend&to=cookingsession/1"
 
 
 #### Graphen ####
 
-curl -u ${DBUSER}:${PASSWORD} -X POST -d \
-   '{name: "variande", edgeDefinitions: ["love_it"], orphanCollections: ["2015-03-29-Muenchnerstr-7", "Rudi"]}'
-   ${DBSERVER}/_db/${DATABASE}/_api/gharial
+# curl -u ${DBUSER}:${PASSWORD} -X POST -d \
+#   '{name: "variande", edgeDefinitions: ["love_it"], orphanCollections: ["2015-03-29-Muenchnerstr-7", "Rudi"]}'
+#   ${DBSERVER}/_db/${DATABASE}/_api/gharial
 
 #### REPORT ####
+
+# Alle Datenbanken auflisten
+echo "-----------------------------------"
+echo "all databases:"
+echo "-----------------------------------"
+curl -u ${DBUSER}:${PASSWORD} --dump - ${DBSERVER}/_api/database/
+
+
+echo "-----------------------------------"
+echo "informaion about databases ${DATABASE}:"
+echo "-----------------------------------"
+curl -u ${DBUSER}:${PASSWORD} --dump - ${DBSERVER}/_api/databases/${DATABASE}
+
 
 # Alle collections
 echo "-----------------------------------"
 echo "all collections:"
 echo "-----------------------------------"
 curl -u ${DBUSER}:${PASSWORD} --dump -d \
-    ${DBSERVER}/_db/${DATABASE}/_api/collection
+    ${DBSERVER}/_api/collection
 
 # Alle edges
 echo "-----------------------------------"
